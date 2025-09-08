@@ -1,5 +1,7 @@
 package com.quejapp.quejapi.dto;
 
+import java.util.Date;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,8 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthenticationResponse {
-    private String authenticationToken;
-    private String refreshToken;
-    private UserSession userData;
+public class UserSession {
+    private String name;
+    private String[] roles;
+    private Date expiration;
 }

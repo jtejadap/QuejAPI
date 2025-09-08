@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.quejapp.quejapi.dto.AuthenticationRequest;
 import com.quejapp.quejapi.dto.AuthenticationResponse;
 import com.quejapp.quejapi.dto.RegisterRequest;
+import com.quejapp.quejapi.dto.UserSession;
 import com.quejapp.quejapi.model.Role;
 import com.quejapp.quejapi.model.User;
 import com.quejapp.quejapi.repository.UserRepository;
@@ -26,8 +27,8 @@ public class AuthenticationService {
 
     public AuthenticationResponse register(RegisterRequest registerRequest, Role role) {
         var user = User.builder()
-                .firstname(registerRequest.getFirstName())
-                .lastname(registerRequest.getLastName())
+                .firstname(registerRequest.getFirstname())
+                .lastname(registerRequest.getLastname())
                 .email(registerRequest.getEmail())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .birthdate(registerRequest.getBirthdate())
@@ -50,9 +51,17 @@ public class AuthenticationService {
         var user = userRepository.findByEmail(authenticationRequest.getEmail()).orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefresh(new HashMap<>(), user);
+
+        var UserSessionData = UserSession.builder()
+                .name(user.getFirstname() + " " + user.getLastname())
+                .roles(new String[]{user.getRole().name()})
+                .expiration(jwtService.getExpirationDateFromToken(jwtToken))
+                .build();
+
         return AuthenticationResponse.builder()
                 .authenticationToken(jwtToken)
                 .refreshToken(refreshToken)
+                .userData(UserSessionData)              
                 .build();
     }
 

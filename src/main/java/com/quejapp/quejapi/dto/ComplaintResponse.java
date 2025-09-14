@@ -30,7 +30,6 @@ public class ComplaintResponse {
             .recievedDate(complaint.getRecievedDate())
             .type(complaint.getType())  
             .description(complaint.getDescription())
-            .location(complaint.getLocation())
             .status(complaint.getStatus())
             .user(complaint.getUser())
             .response(complaint.getResponse())

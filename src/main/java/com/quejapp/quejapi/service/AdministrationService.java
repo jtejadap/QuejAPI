@@ -22,10 +22,13 @@ public class AdministrationService {
     private final UserRepository usersRepo;
 
     public List<ComplaintResponse> getAllComplaints() {
+        /*/
         return complaintsRepo.findAllByOrderByRecievedDateDesc()
                 .stream()
                 .map(ComplaintResponse::mapComplaint)
                 .toList();
+        /*/
+        return null;
     }  
 
 

@@ -40,4 +40,28 @@ public interface ComplaintRepository extends MongoRepository<Complaint, String> 
            "] }")
     Page<Complaint> findByStatus(Integer status, String user, Pageable pageable);
 
+    // Admin queries
+    // Search by reference or subject with status filter
+     @Query("{ $and: [ " +
+           "  { $or: [ " +
+           "    { 'reference': { $regex: ?0, $options: 'i' } }, " +
+           "    { 'subject': { $regex: ?0, $options: 'i' } } " +
+           "  ] }, " +
+           "  { 'status': ?1 }" +
+           "] }")
+    Page<Complaint> findByReferenceOrSubjectContainingIgnoreCaseAndStatus(
+        String searchTerm, Integer status,  Pageable pageable);
+    
+    // Search by reference or subject without status filter
+   @Query("{ $or: [ " +
+           "    { 'reference': { $regex: ?0, $options: 'i' } }, " +
+           "    { 'subject': { $regex: ?0, $options: 'i' } } " +
+           "  ] }")
+    Page<Complaint> findByReferenceOrSubjectContainingIgnoreCase(
+        String searchTerm,  Pageable pageable);
+    
+    // Filter by status only
+    @Query("{ 'status': ?0 }")
+    Page<Complaint> findByStatus(Integer status,  Pageable pageable);
+
 }

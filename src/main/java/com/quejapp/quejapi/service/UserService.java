@@ -12,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.quejapp.quejapi.dto.ComplaintResponse;
 import com.quejapp.quejapi.dto.ComplaintSearch;
 import com.quejapp.quejapi.model.Complaint;
 import com.quejapp.quejapi.model.Trace;
@@ -72,7 +71,7 @@ public class UserService {
     }
 
 
-    public ComplaintResponse getComplaintBy(String id) {
+    public Complaint getComplaintBy(String id) {
         Complaint complaint = complaintsRepo.findById(id).orElseThrow(()-> {
             System.out.println("❌ Queja no encontrada con ID: " + id);
             return new RuntimeException("Queja no encontrada con ID: " + id);
@@ -89,16 +88,7 @@ public class UserService {
 
         System.out.println("✅ Usuario encontrado: " + user.getFirstname() + " " + user.getLastname());
 
-        return ComplaintResponse.builder()
-            .id(complaint.getId())
-            .description(complaint.getDescription())               
-            .recievedDate(complaint.getRecievedDate())
-            .type(complaint.getType())  
-            .description(complaint.getDescription())           
-            .status(complaint.getStatus())
-            .user(complaint.getUser())
-            .response(complaint.getResponse())
-            .build();
+        return complaint;
     }
 
     public Page<Complaint> searchComplaints(ComplaintSearch request) {

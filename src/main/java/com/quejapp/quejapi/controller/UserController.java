@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.quejapp.quejapi.dto.ComplaintResponse;
 import com.quejapp.quejapi.dto.ComplaintSearch;
 import com.quejapp.quejapi.model.Complaint;
 import com.quejapp.quejapi.service.UserService;
@@ -42,8 +41,8 @@ public class UserController {
 
     // Get a product by ID.    
     @GetMapping("/complaints/{id}")
-    public ResponseEntity<ComplaintResponse> getComplaintById(@PathVariable String id) {
-        ComplaintResponse complaint = userService.getComplaintBy(id);
+    public ResponseEntity<Complaint> getComplaintById(@PathVariable String id) {
+        Complaint complaint = userService.getComplaintBy(id);
         return ResponseEntity.ok(complaint);
     }
 }

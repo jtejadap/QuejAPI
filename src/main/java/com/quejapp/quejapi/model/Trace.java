@@ -14,4 +14,5 @@ import lombok.NoArgsConstructor;
 public class Trace {
     private Date date;
     private String status;
+    private String performedBy;
 }

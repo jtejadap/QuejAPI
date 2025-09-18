@@ -56,7 +56,8 @@ public class UserService {
         complaint.setTraceability(new ArrayList<Trace>());
         complaint.addTrace(Trace.builder()
             .date(new java.util.Date())
-            .status("PQRS Radicada")            
+            .status("PQRS Radicada")
+            .performedBy(user.getEmail())            
             .build()
         );
         return complaint;

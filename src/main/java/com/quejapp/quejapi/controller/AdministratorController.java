@@ -46,7 +46,8 @@ public class AdministratorController {
 
     // Update a complaint by ID.     
     @PutMapping("/complaints/{id}")
-    public ResponseEntity<Complaint> updateProduct(@PathVariable Long id, @RequestBody ComplaintUpdate complaint) {
+    public ResponseEntity<Complaint> updateProduct(@PathVariable String id, @RequestBody ComplaintUpdate complaint) {
+        complaint.setId(id);
         Complaint update = administrationService.updateComplaint(complaint);
         return ResponseEntity.ok(update);
     }

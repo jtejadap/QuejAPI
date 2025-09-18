@@ -7,12 +7,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.quejapp.quejapi.dto.ComplaintSearch;
 import com.quejapp.quejapi.dto.ComplaintUpdate;
 import com.quejapp.quejapi.model.Complaint;
+import com.quejapp.quejapi.model.Profile;
+import com.quejapp.quejapi.model.Trace;
 import com.quejapp.quejapi.model.User;
 import com.quejapp.quejapi.repository.ComplaintRepository;
 import com.quejapp.quejapi.repository.UserRepository;
@@ -69,18 +73,122 @@ public class AdministrationService {
 
 
     public Complaint updateComplaint(ComplaintUpdate update){
-        Optional<Complaint> complaint = complaintsRepo.findById(update.getId());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String mail = auth.getName();
+        System.out.println("🔐 Nickname extraído del token: " + mail);
 
-        if(complaint.isEmpty()){
-            return new Complaint();
+        User employee = usersRepo.findByEmail(mail).orElseThrow(()-> {
+            System.out.println("❌ Usuario no encontrado en la base de datos.");
+            return new RuntimeException("Usuario no encontrado");
+        });
+
+        Optional<Complaint> complaintOptional = complaintsRepo.findById(update.getId());
+
+        if(complaintOptional.isEmpty()){            
+            throw new RuntimeException("Queja no encontrada");
         }
-        User employee = usersRepo.findByEmail(update.getUsermail()).orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));;
 
-        Complaint complaintUpdated = complaint.get();
-        complaintUpdated.setEmployee(employee.getId());
-        complaintUpdated.setStatus(update.getStatus());
-        complaintUpdated.setResponse(update.getResponse());
-        complaintUpdated.setResponseDate(new Date());
-        return complaintsRepo.save(complaintUpdated);
+        Complaint complaint = complaintOptional.get();
+        complaint = updateResponseFields(complaint, update, employee);
+        complaint.setStatus(update.getStatus());        
+        complaint.setUpdatedDate(new Date());
+        return complaintsRepo.save(complaint);
     }
+
+    private Complaint updateResponseFields(Complaint complaint, ComplaintUpdate update, User employee){
+        if(!checkIfStatusChanged(complaint.getStatus(), update.getStatus())){
+            return complaint;        
+        }
+        // New or In Process
+        if (update.getStatus()>=0 && update.getStatus() < 2){ 
+            complaint = cleanResponseFields(complaint);
+            complaint = clearComplaintResponseMetrics(complaint);
+            complaint = updateTreceability(complaint, "Estado cambiado a "+ getStatusName(update.getStatus()), employee.getEmail());
+            return complaint;            
+        }
+
+        // Resolved or Closed
+        complaint.setResponseDate(new Date());
+        complaint.setResponse(update.getResponse());
+        complaint.setEmployee(update.getId());
+        complaint.setEmployeeProfile(Profile.builder()
+            .id(employee.getId())
+            .name(employee.getFirstname())
+            .lastname(employee.getLastname())
+            .email(employee.getEmail())
+            .build());
+        complaint.setDepartment(update.getDepartment());
+        complaint = updateComplaintResponseMetrics(complaint);
+        complaint = updateTreceability(complaint, "Radicado "+ getStatusName(update.getStatus()), employee.getEmail());
+        return complaint;
+        
+    }
+
+    private boolean checkIfStatusChanged(Integer status,Integer newStatus){
+        if (status != null && newStatus != null && !status.equals(newStatus)) {
+            return true;
+        }
+        return false;
+    }
+
+    private Complaint cleanResponseFields(Complaint complaint){
+        complaint.setResponseDate(null);
+        complaint.setResponse(null);
+        complaint.setEmployee(null);
+        complaint.setEmployeeProfile(null);
+        complaint.setDepartment(null);
+        return complaint;
+    }
+
+    private Complaint  updateComplaintResponseMetrics(Complaint complaint){
+        complaint.setDaysfromExpiration(calculateDaysFromExpiration(complaint.getRecievedDate()));
+        complaint.setDaysToResolve(calculateDaysToResolve(complaint.getRecievedDate(), complaint.getResponseDate()));
+        return complaint;
+    }
+
+    private Integer calculateDaysFromExpiration(Date recievedDate){
+        if(recievedDate == null) return null;
+        Date currentDate = new Date();
+        Integer daysElapsed = getDifferenceInDays(recievedDate, currentDate);
+        int expirationPeriod = 15; //15 days to respond       
+        return expirationPeriod - daysElapsed;
+    }
+
+    private Integer calculateDaysToResolve(Date recievedDate, Date responseDate){
+        if(recievedDate == null || responseDate == null) return null;
+        return getDifferenceInDays(recievedDate, responseDate);
+    }
+
+    private Integer getDifferenceInDays(Date start, Date end){
+        long diffInMillies = Math.abs(end.getTime() - start.getTime());
+        return (int) (diffInMillies / (1000 * 60 * 60 * 24));
+    }
+
+    private Complaint clearComplaintResponseMetrics(Complaint complaint){
+        complaint.setDaysfromExpiration(null);
+        complaint.setDaysToResolve(null);
+        return complaint;
+    }
+
+    private Complaint updateTreceability(Complaint complaint, String action, String performedBy){
+        complaint.addTrace(
+            Trace.builder()
+                .date(new Date())
+                .status(action)
+                .performedBy(performedBy)
+                .build()
+        );
+        return complaint;
+    }
+
+    private String getStatusName(Integer status){
+        return switch (status) {
+            case 0 -> "Nuevo";
+            case 1 -> "En Proceso";
+            case 2 -> "Resuelto";
+            case 3 -> "Cerrado";
+            default -> "Desconocido";
+        };
+    }
+   
 }

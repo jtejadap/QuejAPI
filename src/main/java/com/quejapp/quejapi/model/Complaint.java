@@ -35,6 +35,7 @@ public class Complaint {
     private Profile employeeProfile;
     private Integer daysToResolve;
     private Integer daysfromExpiration;
+    private Date updatedDate;
     private List<Trace> traceability;
 
     public void addTrace(Trace trace) {

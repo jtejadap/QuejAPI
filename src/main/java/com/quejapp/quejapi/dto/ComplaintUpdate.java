@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ComplaintUpdate {
     private String id;
-    private String usermail;
     private Integer status;
+    private String department;
     private String response;
 }

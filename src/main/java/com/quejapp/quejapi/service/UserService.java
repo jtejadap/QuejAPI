@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 
 import com.quejapp.quejapi.dto.ComplaintSearch;
 import com.quejapp.quejapi.model.Complaint;
+import com.quejapp.quejapi.model.Profile;
 import com.quejapp.quejapi.model.Trace;
 import com.quejapp.quejapi.model.User;
 import com.quejapp.quejapi.repository.ComplaintRepository;
@@ -37,12 +38,19 @@ public class UserService {
             return new RuntimeException("Usuario no encontrado");
         });
       
-        return complaintsRepo.save(initializeComplaint(complaint, user.getId()));
+        return complaintsRepo.save(initializeComplaint(complaint, user));
     }
 
-    private Complaint initializeComplaint(Complaint complaint, String user) {
+    private Complaint initializeComplaint(Complaint complaint, User user) {
         complaint.setStatus(0);
-        complaint.setUser(user);
+        complaint.setUser(user.getId());
+        complaint.setUserProfile(Profile.builder()
+            .id(user.getId())
+            .name(user.getFirstname())
+            .lastname(user.getLastname())
+            .email(user.getEmail())
+            .build()
+        );
         complaint.setReference(buildReferenceField(complaint.getType()));
         complaint.setRecievedDate(new java.util.Date());
         complaint.setTraceability(new ArrayList<Trace>());

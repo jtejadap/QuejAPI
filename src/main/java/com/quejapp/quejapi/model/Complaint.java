@@ -25,12 +25,14 @@ public class Complaint {
     private String subject;  
     private String description;
     private Integer status;
-    private String user;      
+    private String user; 
+    private Profile userProfile;     
     
     private String response; 
     private Date responseDate;
     private String department;
     private String employee;
+    private Profile employeeProfile;
     private Integer daysToResolve;
     private Integer daysfromExpiration;
     private List<Trace> traceability;

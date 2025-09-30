@@ -28,10 +28,11 @@ public class SecurityConfiguration {
 
 
         http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(request -> request.requestMatchers(
-                                "/api/auth/**").permitAll()
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority(Role.ADMINISTRATOR.name())
                         .requestMatchers("/api/user/**").hasAnyAuthority(Role.USER.name(), Role.ADMINISTRATOR.name())
+                        .requestMatchers("/api/weka/**").permitAll()
                         .anyRequest().authenticated())
 
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

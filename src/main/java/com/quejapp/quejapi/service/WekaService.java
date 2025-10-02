@@ -53,7 +53,7 @@ public class WekaService {
         return "Modelo entrenado exitosamente con " + trainingData.numInstances() + " instancias";
     }
     
-    public String predict(String tipo, String canal, String dia, String mes) throws Exception {
+    public String predict(String tipo, String canal, String dia, String mes, Boolean mode) throws Exception {
         if (classifier == null || trainingData == null) {
             throw new IllegalStateException("El modelo no está entrenado");
         }
@@ -74,6 +74,10 @@ public class WekaService {
         
         // Obtener la distribución de probabilidades
         double[] distribution = classifier.distributionForInstance(newInstance);
+
+        if(mode != null && mode) {
+            return predictedClass;
+        }
         
         StringBuilder result = new StringBuilder();
         result.append("Predicción: ").append(predictedClass).append("\n");
@@ -85,6 +89,7 @@ public class WekaService {
         
         return result.toString();
     }
+
     
     public String evaluateModel() throws Exception {
         if (classifier == null || trainingData == null) {

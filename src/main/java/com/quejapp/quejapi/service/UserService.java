@@ -2,6 +2,7 @@ package com.quejapp.quejapi.service;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
     private final ComplaintRepository complaintsRepo;
     private final UserRepository usersRepo; 
+    private final WekaService wekaService;
 
     public Complaint createComplaintForUser(Complaint complaint) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -53,13 +55,15 @@ public class UserService {
         );
         complaint.setReference(buildReferenceField(complaint.getType()));
         complaint.setRecievedDate(new java.util.Date());
-        complaint.setTraceability(new ArrayList<Trace>());
+        complaint.setTraceability(new ArrayList<Trace>());        
         complaint.addTrace(Trace.builder()
             .date(new java.util.Date())
             .status("PQRS Radicada")
             .performedBy(user.getEmail())            
             .build()
         );
+        complaint.setPrediction(makePredition(complaint));
+        System.out.println("✅ Queja inicializada con referencia: " + complaint.getReference());
         return complaint;
     }
 
@@ -77,6 +81,51 @@ public class UserService {
         for (int i = 0; i < length; i++)
             sb.append(chars.charAt(rnd.nextInt(chars.length())));
         return sb.toString();
+    }
+
+    private String makePredition(Complaint complaint){
+        String tipo = transformTypeToString(complaint.getType());
+        String canal = "Web";
+        String dia = transformDayToString(complaint.getRecievedDate());
+        String mes = transformMonthToString(complaint.getRecievedDate());
+        try {
+            return wekaService.predict(tipo, canal, dia, mes, true);
+        } catch (Exception e) {
+            System.out.println("❌ Error al hacer la predicción: " + e.getMessage());
+            return "Desconocido";
+        }        
+    }
+
+    private String transformTypeToString(Integer type) {
+        String[] types = {"Petición", "Queja", "Reclamo", "Sugerencia", "Felicitación"};
+        if(type == null || type > types.length) {
+            return "Petición";
+        }
+        return types[type];
+    }
+
+    private String transformDayToString(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("u"); // 'u' gives day
+        int day = Integer.parseInt(sdf.format(date));
+        String[] days = {"lunes", "martes", "miércoles", "jueves", "viernes"};
+        if( day < 1 || day > days.length) {
+            return "lunes";
+        }
+        if(day > 5){
+            return "viernes";
+        } 
+        return days[day - 1];
+    }
+
+    private String transformMonthToString(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("M"); // 'M' gives month
+        int month = Integer.parseInt(sdf.format(date));
+        String[] months = {"enero", "febrero", "marzo", "abril", "mayo", "junio", 
+                           "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"};
+        if(month < 1 || month > months.length) {
+            return "enero";
+        }
+        return months[month - 1];
     }
 
 

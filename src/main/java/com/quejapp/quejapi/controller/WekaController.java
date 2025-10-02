@@ -36,7 +36,7 @@ public class WekaController {
             String dia = weatherData.get("dia");
             String mes = weatherData.get("mes");
             
-            String prediction = wekaService.predict(tipo, canal, dia, mes);
+            String prediction = wekaService.predict(tipo, canal, dia, mes, false);
             return ResponseEntity.ok(prediction);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());

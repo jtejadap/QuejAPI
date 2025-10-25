@@ -97,9 +97,9 @@ public class UserService {
     }
 
     private String transformTypeToString(Integer type) {
-        String[] types = {"Petición", "Queja", "Reclamo", "Sugerencia", "Felicitación"};
+        String[] types = {"Peticion", "Queja", "Reclamo", "Sugerencia", "Felicitacion"};
         if(type == null || type > types.length) {
-            return "Petición";
+            return "Peticion";
         }
         return types[type];
     }
@@ -107,7 +107,7 @@ public class UserService {
     private String transformDayToString(Date date) {
         SimpleDateFormat sdf = new SimpleDateFormat("u"); // 'u' gives day
         int day = Integer.parseInt(sdf.format(date));
-        String[] days = {"lunes", "martes", "miércoles", "jueves", "viernes"};
+        String[] days = {"lunes", "martes", "miercoles", "jueves", "viernes"};
         if( day < 1 || day > days.length) {
             return "lunes";
         }

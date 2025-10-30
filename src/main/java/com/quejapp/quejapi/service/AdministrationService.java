@@ -110,7 +110,7 @@ public class AdministrationService {
         // Resolved or Closed
         complaint.setResponseDate(new Date());
         complaint.setResponse(update.getResponse());
-        complaint.setEmployee(update.getId());
+        complaint.setEmployee(employee.getId());
         complaint.setEmployeeProfile(Profile.builder()
             .id(employee.getId())
             .name(employee.getFirstname())
@@ -151,7 +151,10 @@ public class AdministrationService {
         Date currentDate = new Date();
         Integer daysElapsed = getDifferenceInDays(recievedDate, currentDate);
         int expirationPeriod = 15; //15 days to respond       
-        return expirationPeriod - daysElapsed;
+        if(daysElapsed <= expirationPeriod){
+            return 0;
+        }
+        return daysElapsed - expirationPeriod;
     }
 
     private Integer calculateDaysToResolve(Date recievedDate, Date responseDate){

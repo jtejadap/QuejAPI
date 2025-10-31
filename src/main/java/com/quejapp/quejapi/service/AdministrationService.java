@@ -97,6 +97,15 @@ public class AdministrationService {
 
     private Complaint updateResponseFields(Complaint complaint, ComplaintUpdate update, User employee){
         if(!checkIfStatusChanged(complaint.getStatus(), update.getStatus())){
+            complaint.setResponse(update.getResponse());
+            complaint.setEmployee(employee.getId());
+            complaint.setEmployeeProfile(Profile.builder()
+                .id(employee.getId())
+                .name(employee.getFirstname())
+                .lastname(employee.getLastname())
+                .email(employee.getEmail())
+                .build());
+            complaint.setDepartment(update.getDepartment());
             return complaint;        
         }
         // New or In Process
